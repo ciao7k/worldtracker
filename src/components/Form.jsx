@@ -32,8 +32,11 @@ function Form() {
   const [isLoadingGeocoding, setIsLoadingGeocoding] = useState(false);
   const [cityName, setCityName] = useState("");
   const [country, setCountry] = useState("");
-  const [date, setDate] = useState(new Date());
+  // const [date, setDate] = useState(new Date());
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(null);
   const [notes, setNotes] = useState("");
+  const [image, setImage] = useState(null);
   const [emoji, setEmoji] = useState("");
   const [geocodingError, setGeocodingError] = useState("");
 
@@ -68,18 +71,31 @@ function Form() {
     [lat, lng]
   );
 
+  function handleImageChange(e) {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setImage(reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault();
 
-    if (!cityName || !date) return;
+    if (!cityName || !startDate) return;
 
     const newCity = {
       cityName,
       country,
       emoji,
-      date,
+      startDate, // 修改
+      endDate, // 新增
       notes,
       position: { lat, lng },
+      image, // 新增
     };
 
     await createCity(newCity);
@@ -107,7 +123,7 @@ function Form() {
         <span className={styles.flag}>{emoji}</span>
       </div>
 
-      <div className={styles.row}>
+      {/* <div className={styles.row}>
         <label htmlFor="date">到访 {cityName}的日期</label>
 
         <DatePicker
@@ -115,6 +131,21 @@ function Form() {
           onChange={(date) => setDate(date)}
           selected={date}
           dateFormat="dd/MM/yyyy"
+        />
+      </div> */}
+
+      <div className={styles.row}>
+        <label htmlFor="date">访问日期范围</label>
+        <DatePicker
+          selectsRange={true}
+          startDate={startDate}
+          endDate={endDate}
+          onChange={(update) => {
+            const [start, end] = update;
+            setStartDate(start);
+            setEndDate(end);
+          }}
+          isClearable={true}
         />
       </div>
 
@@ -125,6 +156,19 @@ function Form() {
           onChange={(e) => setNotes(e.target.value)}
           value={notes}
         />
+      </div>
+
+      <div className={styles.row}>
+        <label htmlFor="image">上传图片</label>
+        <input
+          type="file"
+          id="image"
+          accept="image/*"
+          onChange={handleImageChange}
+        />
+        {image && (
+          <img src={image} alt="Preview" className={styles.imagePreview} />
+        )}
       </div>
 
       <div className={styles.buttons}>

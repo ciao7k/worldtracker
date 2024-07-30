@@ -108,9 +108,16 @@ function CitiesProvider({ children }) {
     dispatch({ type: "loading" });
 
     try {
+      // 确保日期是字符串格式
+      const cityWithFormattedDates = {
+        ...newCity,
+        startDate: newCity.startDate ? newCity.startDate.toISOString() : null,
+        endDate: newCity.endDate ? newCity.endDate.toISOString() : null,
+      };
+
       const res = await fetch(`${BASE_URL}/cities`, {
         method: "POST",
-        body: JSON.stringify(newCity),
+        body: JSON.stringify(cityWithFormattedDates),
         headers: {
           "Content-Type": "application/json",
         },
