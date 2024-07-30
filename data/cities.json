@@ -1,3 +1,18 @@
 {
-  "cities": []
+  "cities": [
+    {
+      "cityName": "Ordos",
+      "country": "China",
+      "emoji": "🇨🇳",
+      "startDate": "2024-07-22T15:00:00.000Z",
+      "endDate": "2024-07-23T15:00:00.000Z",
+      "notes": "d",
+      "position": {
+        "lat": "38.272688535980976",
+        "lng": "108.63281250000001"
+      },
+      "image": null,
+      "id": 1
+    }
+  ]
 }
