@@ -1,3 +1,5 @@
+// CitiesContext.jsx
+
 import {
   createContext,
   useEffect,
@@ -28,17 +30,14 @@ function reducer(state, action) {
   switch (action.type) {
     case "loading":
       return { ...state, isLoading: true };
-
     case "cities/loaded":
       return {
         ...state,
         isLoading: false,
         cities: action.payload,
       };
-
     case "city/loaded":
       return { ...state, isLoading: false, currentCity: action.payload };
-
     case "city/created":
       return {
         ...state,
@@ -46,7 +45,6 @@ function reducer(state, action) {
         cities: [...state.cities, action.payload],
         currentCity: action.payload,
       };
-
     case "city/deleted":
       return {
         ...state,
@@ -54,14 +52,12 @@ function reducer(state, action) {
         cities: state.cities.filter((city) => city.id !== action.payload),
         currentCity: {},
       };
-
     case "rejected":
       return {
         ...state,
         isLoading: false,
         error: action.payload,
       };
-
     default:
       throw new Error("Unknown action type");
   }
@@ -82,6 +78,8 @@ function CitiesProvider({ children }) {
         const cityList = citySnapshot.docs.map((doc) => ({
           id: doc.id,
           ...doc.data(),
+          startDate: doc.data().startDate.toDate(),
+          endDate: doc.data().endDate ? doc.data().endDate.toDate() : null,
         }));
         dispatch({ type: "cities/loaded", payload: cityList });
       } catch (error) {
@@ -94,15 +92,19 @@ function CitiesProvider({ children }) {
   const getCity = useCallback(
     async function getCity(id) {
       if (id === currentCity.id) return;
-
       dispatch({ type: "loading" });
-
       try {
         const docRef = doc(db, "cities", id);
         const docSnap = await getDoc(docRef);
-
         if (docSnap.exists()) {
-          const data = { id: docSnap.id, ...docSnap.data() };
+          const data = {
+            id: docSnap.id,
+            ...docSnap.data(),
+            startDate: docSnap.data().startDate.toDate(),
+            endDate: docSnap.data().endDate
+              ? docSnap.data().endDate.toDate()
+              : null,
+          };
           dispatch({ type: "city/loaded", payload: data });
         } else {
           throw new Error("City not found");
@@ -120,10 +122,20 @@ function CitiesProvider({ children }) {
   async function createCity(newCity) {
     dispatch({ type: "loading" });
     try {
-      const docRef = await addDoc(collection(db, "cities"), newCity);
+      const docRef = await addDoc(collection(db, "cities"), {
+        ...newCity,
+        startDate: new Date(newCity.startDate),
+        endDate: newCity.endDate ? new Date(newCity.endDate) : null,
+      });
+      const createdCity = {
+        id: docRef.id,
+        ...newCity,
+        startDate: new Date(newCity.startDate),
+        endDate: newCity.endDate ? new Date(newCity.endDate) : null,
+      };
       dispatch({
         type: "city/created",
-        payload: { id: docRef.id, ...newCity },
+        payload: createdCity,
       });
     } catch (error) {
       dispatch({ type: "rejected", payload: "Error creating city" });

@@ -1,4 +1,4 @@
-// "https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=0&longitude=0"
+// Form.jsx
 
 import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
@@ -6,7 +6,6 @@ import "react-datepicker/dist/react-datepicker.css";
 
 import Button from "./Button";
 import BackButton from "./BackButton";
-
 import styles from "./Form.module.css";
 import { useUrlPosition } from "../hooks/useUrlPosition";
 import Message from "./Message";
@@ -32,44 +31,37 @@ function Form() {
   const [isLoadingGeocoding, setIsLoadingGeocoding] = useState(false);
   const [cityName, setCityName] = useState("");
   const [country, setCountry] = useState("");
-  // const [date, setDate] = useState(new Date());
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(null);
   const [notes, setNotes] = useState("");
-  const [image, setImage] = useState(null);
   const [emoji, setEmoji] = useState("");
   const [geocodingError, setGeocodingError] = useState("");
+  const [image, setImage] = useState(null);
 
-  useEffect(
-    function () {
-      if (!lat && !lng) return;
+  useEffect(() => {
+    if (!lat && !lng) return;
 
-      async function fetchCityData() {
-        try {
-          setIsLoadingGeocoding(true);
-          setGeocodingError("");
+    async function fetchCityData() {
+      try {
+        setIsLoadingGeocoding(true);
+        setGeocodingError("");
 
-          const res = await fetch(
-            `${BASE_URL}?latitude=${lat}&longitude=${lng}`
-          );
-          const data = await res.json();
-          console.log(data);
+        const res = await fetch(`${BASE_URL}?latitude=${lat}&longitude=${lng}`);
+        const data = await res.json();
 
-          if (!data.countryCode) throw new Error("点击城市位置 ");
+        if (!data.countryCode) throw new Error("点击城市位置 ");
 
-          setCityName(data.city || data.locality || "");
-          setCountry(data.countryName);
-          setEmoji(convertToEmoji(data.countryCode));
-        } catch (err) {
-          setGeocodingError(err.message);
-        } finally {
-          setIsLoadingGeocoding(false);
-        }
+        setCityName(data.city || data.locality || "");
+        setCountry(data.countryName);
+        setEmoji(convertToEmoji(data.countryCode));
+      } catch (err) {
+        setGeocodingError(err.message);
+      } finally {
+        setIsLoadingGeocoding(false);
       }
-      fetchCityData();
-    },
-    [lat, lng]
-  );
+    }
+    fetchCityData();
+  }, [lat, lng]);
 
   function handleImageChange(e) {
     const file = e.target.files[0];
@@ -91,11 +83,11 @@ function Form() {
       cityName,
       country,
       emoji,
-      startDate, // 修改
-      endDate, // 新增
+      startDate: startDate.toISOString(),
+      endDate: endDate ? endDate.toISOString() : null,
       notes,
       position: { lat, lng },
-      image, // 新增
+      image,
     };
 
     await createCity(newCity);
@@ -114,7 +106,7 @@ function Form() {
       onSubmit={handleSubmit}
     >
       <div className={styles.row}>
-        <label htmlFor="cityName">城市</label>
+        <label htmlFor="cityName">城市名称</label>
         <input
           id="cityName"
           onChange={(e) => setCityName(e.target.value)}
@@ -123,20 +115,10 @@ function Form() {
         <span className={styles.flag}>{emoji}</span>
       </div>
 
-      {/* <div className={styles.row}>
-        <label htmlFor="date">到访 {cityName}的日期</label>
-
-        <DatePicker
-          id="date"
-          onChange={(date) => setDate(date)}
-          selected={date}
-          dateFormat="dd/MM/yyyy"
-        />
-      </div> */}
-
       <div className={styles.row}>
         <label htmlFor="date">访问日期范围</label>
         <DatePicker
+          id="date"
           selectsRange={true}
           startDate={startDate}
           endDate={endDate}
@@ -150,7 +132,7 @@ function Form() {
       </div>
 
       <div className={styles.row}>
-        <label htmlFor="notes"> {cityName}旅行笔记</label>
+        <label htmlFor="notes">旅行笔记</label>
         <textarea
           id="notes"
           onChange={(e) => setNotes(e.target.value)}
